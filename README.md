@@ -17,20 +17,22 @@ At the moment I am learning docker, Dockerfile and docker-compose and this repos
 * https://hub.docker.com
 * https://labs.play-with-docker.com
 
-Standardisierung
-- Jeder Container hat immer einen präzisen Ausgangszustand
-- Container haben definierte Schnittstellen
-    - Ports für Netzwerk 
-    - Volumes für Dateien und Verzeichnisse
-- Im Container läuft die Applikation mit allen Abhängigkeiten
+Standardization
+- Each container always has a precisely defined initial state
+- Containers have defined interfaces
+    - ports for Network 
+    - Volumes for files and directories
+- The application runs in the container with all dependencies
 
-Vier Grundbegriffe
-- Dockerfile = Bauanleitung für Image 
-- Image = eingepackte Applikation
-- Registry = Zentrale Bibliothek für Images
-- Container = laufende Applikation
+Four Basic terms
+- Dockerfile = Building instructions for image 
+- Image = Complete application with all dependencies
+- Registry = Central library for images (E.g. Dockerhub)
+- Container = Running application
 
 ## Docker image layer
+
+When we run the docker build command, docker builds one layer for each instruction in the dockerfile. These image layers are read only layers. When we run the docker run command, docker builds container layer, which are read/write layers.
 
 *Example Dockerfile*
 
@@ -61,13 +63,13 @@ RUN apt install apache2 -y
 ## Install Docker
 
 ```shell
-## Docker Vorraussetzungen überprüfen
+## Check Docker prerequisites
 ##
 curl https://raw.githubusercontent.com/moby/moby/master/contrib/check-config.sh | sh
 ```
 
 ```shell
-## Installing Docker on Ubuntu/Mint
+## Install Docker on Ubuntu/Mint
 ##
 sudo apt update && apt upgrade -y
 sudo apt install -y apt-transport-https ca-certificates curl gnupg-agent \
@@ -87,7 +89,7 @@ docker version
 ## Docker basic commands
 
 ```shell
-## search and download a docker image
+## search and download a docker image (Dockerhub)
 ##
 docker search ubuntu
 docker pull ubuntu
@@ -123,20 +125,20 @@ docker ps -a
 docker start 8908eecb4a01
 docker attach 8908eecb4a01
 
-## Beispiel
+## Example
 ## root@8908eecb4a01:/# apt update && apt install curl
-## Exit Container ohne das er gelöscht oder beendet wird
+## Exit container without deleting or terminating it
 STRG + p q
 docker ps -a 
 
-## Der Container läuft weiter
+## the container still running
 ## CONTAINER ID IMAGE  COMMAND CREATED       STATUS
 ## 8908eecb4a01 ubuntu "bash"  5 minutes ago Up 2 minutes ...
 
 ## docker image with custom name
 docker run --name myubu -it ubuntu
 docker start myubu
-docker stats myubu # Auslastung des docker Containers
+docker stats myubu # docker container state
 docker top myubu
 ```
 ## Create docker image (a quick way for testing)
@@ -170,7 +172,7 @@ docker ps
 # CONTAINER ID IMAGE               COMMAND CREATED        STATUS        PORTS
 # cbf7a40c9069 hth/apache-test:1.0 "bash"  18 seconds ago Up 17 seconds 0.0.0.0:8080->80/tcp, :::8080->80/tcp ...
 
-http://localhost:8080 ## Apache Dienst läuft nicht
+http://localhost:8080 ## Apache service is not running, website is not reachable.
 
 docker ps
 docker commit --change='ENTRYPOINT ["apachectl", "-DFOREGROUND"]' cbf7a40c9069 hth/apache-test:1.1
@@ -190,7 +192,7 @@ docker ps
 # CONTAINER ID IMAGE               COMMAND                CREATED       STATUS       PORTS
 # 09c9fd07ae1f hth/apache-test:1.1 "apachectl -DFOREGRO…" 4 seconds ago Up 3 seconds 0.0.0.0:8080->80/tcp, :::8080->80/tcp ...
 
-http://localhost:8080 ## Apache Dienst läuft jetzt, Webseite ist erreichbar.
+http://localhost:8080 ## Apache service is running, website is reachable.
 ```
 
 ## Create docker image with Dockerfile (best practice)
