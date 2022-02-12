@@ -6,13 +6,13 @@ At the moment I am learning docker, Dockerfile and docker-compose and this repos
 
 ---
 
-### Table of content
+## Table of content
 
 * [Gitea Git Server](gitea/)
 
 ---
 
-### Docker Basics
+## Docker Basics
 
 * https://hub.docker.com
 * https://labs.play-with-docker.com
@@ -30,7 +30,36 @@ Vier Grundbegriffe
 - Registry = Zentrale Bibliothek für Images
 - Container = laufende Applikation
 
-### Install Docker
+## Docker image structure
+
+*Docker Example Dockerfile*
+
+```dockerfile
+FROM ubuntu
+
+RUN apt update
+
+RUN apt install apache2 -y
+
+```
+
+```
++===========================================================================+
+| Docker layer        | Dockerfile commands  | Layer Type      | Access     |
++===========================================================================+
+| docker image layer  | apt install curl -y  | Container Layer | Read/write |
++---------------------------------------------------------------------------+
+|                                                                           |
++---------------------------------------------------------------------------+
+| docker third layer  | apt install apache 2 | Image Layer     | Read only  |
++---------------------------------------------------------------------------+
+| docker second layer | apt update           | Image Layer     | Read only  |
++---------------------------------------------------------------------------+
+| docker base layer   | ubuntu               | Image Layer     | Read only  |
++---------------------------------------------------------------------------+
+```
+
+## Install Docker
 
 ```shell
 ## Docker Vorraussetzungen überprüfen
@@ -56,7 +85,7 @@ docker run hello-world
 docker info
 docker version
 ```
-### Docker basic commands
+## Docker basic commands
 
 ```shell
 ## search and download a docker image
@@ -111,7 +140,7 @@ docker start myubu
 docker stats myubu # Auslastung des docker Containers
 docker top myubu
 ```
-### create docker image (a quick way for testing)
+## Create docker image (a quick way for testing)
 
 ```shell
 ## create docker images
@@ -165,7 +194,7 @@ docker ps
 http://localhost:8080 ## Apache Dienst läuft jetzt, Webseite ist erreichbar.
 ```
 
-### create docker image with Dockerfile (best practice)
+## Create docker image with Dockerfile (best practice)
 
 ```shell
 mkdir -p ~/dockerimg/apache2 && cd ~/dockerimg/apache2
@@ -197,7 +226,7 @@ docker build -t hth/apache-test:1.2 .
 docker run -it -d -p 8080:80 hth/apache-test:1.2
 ```
 
-### delete docker image/container/system
+## Delete docker image/container/system
 
 ```shell
 ## delete docker image
