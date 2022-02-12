@@ -30,33 +30,32 @@ Vier Grundbegriffe
 - Registry = Zentrale Bibliothek für Images
 - Container = laufende Applikation
 
-## Docker image structure
+## Docker image layer
 
-*Docker Example Dockerfile*
+*Example Dockerfile*
 
 ```dockerfile
 FROM ubuntu
-
 RUN apt update
-
 RUN apt install apache2 -y
-
 ```
 
 ```
-+===========================================================================+
-| Docker layer        | Dockerfile commands  | Layer Type      | Access     |
-+===========================================================================+
-| docker image layer  | apt install curl -y  | Container Layer | Read/write |
-+---------------------------------------------------------------------------+
-|                                                                           |
-+---------------------------------------------------------------------------+
-| docker third layer  | apt install apache 2 | Image Layer     | Read only  |
-+---------------------------------------------------------------------------+
-| docker second layer | apt update           | Image Layer     | Read only  |
-+---------------------------------------------------------------------------+
-| docker base layer   | ubuntu               | Image Layer     | Read only  |
-+---------------------------------------------------------------------------+
++==============================================================================+
+| Docker layer        | Shell commands          | Layer Type      | Access     |
++==============================================================================+
+| docker image layer  | apt install curl -y     | Container Layer | Read/Write |
++------------------------------------------------------------------------------+
+|                                                                              |
++------------------------------------------------------------------------------+
+|                     | Dockerfile commands     |                              |
++------------------------------------------------------------------------------+
+| docker third layer  | apt install apache2 -y  | Image Layer     | Read only  |
++------------------------------------------------------------------------------+
+| docker second layer | apt update              | Image Layer     | Read only  |
++------------------------------------------------------------------------------+
+| docker first layer  | ubuntu                  | Image Layer     | Read only  |
++------------------------------------------------------------------------------+
 ```
 
 ## Install Docker
