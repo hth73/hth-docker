@@ -1,6 +1,6 @@
 # Gitea
 
-[Back to home](..)
+[Back to home](https://github.com/hth73/hth-docker)
 
 ---
 
