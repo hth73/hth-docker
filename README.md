@@ -102,9 +102,94 @@ docker ps -a
 ## CONTAINER ID IMAGE  COMMAND CREATED       STATUS
 ## 8908eecb4a01 ubuntu "bash"  5 minutes ago Up 2 minutes ...
 
-## Docker Image benahmen
+## docker image with custom name
 docker run --name myubu -it ubuntu
 docker start myubu
 docker stats myubu # Auslastung des docker Containers
 docker top myubu
 ```
+
+```shell
+## create docker images
+##
+docker run -it -d ubuntu
+docker ps
+docker attach 0abed4ec0c29
+
+root@0abed4ec0c29:/# apt update && apt dist-upgrade -y && apt install apache2 -y
+root@0abed4ec0c29:/# /etc/init.d/apache2 status
+#  * apache2 is not running
+root@0abed4ec0c29:/# /etc/init.d/apache2 start 
+# * apache2 is running
+
+STRG + p q
+
+# create new image
+docker commit 0abed4ec0c29 hth/apache-test:1.0
+
+docker images
+# REPOSITORY        TAG       IMAGE ID       CREATED         SIZE
+# hth/apache-test   1.0       bad1e4d5a266   5 seconds ago   275MB
+# ubuntu            latest    54c9d81cbb44   6 days ago      72.8MB
+
+docker run -it -d -p 8080:80 hth/apache-test:1.0
+docker ps
+
+# CONTAINER ID   IMAGE                 COMMAND   CREATED          STATUS          PORTS                                   NAMES
+# cbf7a40c9069   hth/apache-test:1.0   "bash"    18 seconds ago   Up 17 seconds   0.0.0.0:8080->80/tcp, :::8080->80/tcp   eloquent_gagarin
+
+http://localhost:8080 ## Apache Dienst läuft nicht
+
+docker ps
+docker commit --change='ENTRYPOINT ["apachectl", "-DFOREGROUND"]' cbf7a40c9069 hth/apache-test:1.1
+# docker commit --change='CMD ["apachectl", "-DFOREGROUND"]' cbf7a40c9069 hth/apache-test:1.1
+
+docker images
+# REPOSITORY        TAG       IMAGE ID       CREATED          SIZE
+# hth/apache-test   1.1       d324457c3e8b   4 seconds ago    275MB
+# hth/apache-test   1.0       bad1e4d5a266   25 minutes ago   275MB
+# ubuntu            latest    54c9d81cbb44   6 days ago       72.8MB
+
+docker ps
+docker stop cbf7a40c9069
+docker run -it -d -p 8080:80 hth/apache-test:1.1
+
+docker ps
+# CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS                                   NAMES
+# 09c9fd07ae1f   hth/apache-test:1.1   "apachectl -DFOREGRO…"   4 seconds ago   Up 3 seconds   0.0.0.0:8080->80/tcp, :::8080->80/tcp   frosty_noether
+
+http://localhost:8080 ## Apache Dienst läuft jetzt, Webseite ist erreichbar.
+```
+
+```shell
+## another way to create docker images
+##
+mkdir -p ~/dockerimg/apache2 && cd ~/dockerimg/apache2
+vi Dockerfile
+```
+
+```dockerfile
+FROM ubuntu
+MAINTAINER hth <email@domain.de>
+
+## Skip prompts
+ARG DEBIAN_FRONTEND=noninteractive
+
+## Update packages
+RUN apt update; apt dist-upgrade -y; apt autoremove -y
+
+## Install Apache2 Webserver
+RUN apt install apache2 vim curl net-tools -y
+
+## Set entrypoint
+ENTRYPOINT apachectl -D FOREGROUND
+```
+
+```shell
+## docker build
+##
+docker build -t hth/apache-test:1.2 .
+
+docker run -it -d -p 8080:80 hth/apache-test:1.2
+```
+
