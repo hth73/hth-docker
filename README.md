@@ -30,6 +30,8 @@ Vier Grundbegriffe
 - Registry = Zentrale Bibliothek für Images
 - Container = laufende Applikation
 
+### Install Docker
+
 ```shell
 ## Docker Vorraussetzungen überprüfen
 ##
@@ -54,6 +56,7 @@ docker run hello-world
 docker info
 docker version
 ```
+### Docker basic commands
 
 ```shell
 ## search and download a docker image
@@ -108,6 +111,7 @@ docker start myubu
 docker stats myubu # Auslastung des docker Containers
 docker top myubu
 ```
+### create docker image (a quick way for testing)
 
 ```shell
 ## create docker images
@@ -116,10 +120,10 @@ docker run -it -d ubuntu
 docker ps
 docker attach 0abed4ec0c29
 
-root@0abed4ec0c29:/# apt update && apt dist-upgrade -y && apt install apache2 -y
-root@0abed4ec0c29:/# /etc/init.d/apache2 status
+# root@0abed4ec0c29:/# apt update && apt dist-upgrade -y && apt install apache2 -y
+# root@0abed4ec0c29:/# /etc/init.d/apache2 status
 #  * apache2 is not running
-root@0abed4ec0c29:/# /etc/init.d/apache2 start 
+# root@0abed4ec0c29:/# /etc/init.d/apache2 start 
 # * apache2 is running
 
 STRG + p q
@@ -135,8 +139,8 @@ docker images
 docker run -it -d -p 8080:80 hth/apache-test:1.0
 docker ps
 
-# CONTAINER ID   IMAGE                 COMMAND   CREATED          STATUS          PORTS                                   NAMES
-# cbf7a40c9069   hth/apache-test:1.0   "bash"    18 seconds ago   Up 17 seconds   0.0.0.0:8080->80/tcp, :::8080->80/tcp   eloquent_gagarin
+# CONTAINER ID IMAGE               COMMAND CREATED        STATUS        PORTS
+# cbf7a40c9069 hth/apache-test:1.0 "bash"  18 seconds ago Up 17 seconds 0.0.0.0:8080->80/tcp, :::8080->80/tcp ...
 
 http://localhost:8080 ## Apache Dienst läuft nicht
 
@@ -155,15 +159,15 @@ docker stop cbf7a40c9069
 docker run -it -d -p 8080:80 hth/apache-test:1.1
 
 docker ps
-# CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS                                   NAMES
-# 09c9fd07ae1f   hth/apache-test:1.1   "apachectl -DFOREGRO…"   4 seconds ago   Up 3 seconds   0.0.0.0:8080->80/tcp, :::8080->80/tcp   frosty_noether
+# CONTAINER ID IMAGE               COMMAND                CREATED       STATUS       PORTS
+# 09c9fd07ae1f hth/apache-test:1.1 "apachectl -DFOREGRO…" 4 seconds ago Up 3 seconds 0.0.0.0:8080->80/tcp, :::8080->80/tcp ...
 
 http://localhost:8080 ## Apache Dienst läuft jetzt, Webseite ist erreichbar.
 ```
 
+### create docker image with Dockerfile (best practice)
+
 ```shell
-## another way to create docker images
-##
 mkdir -p ~/dockerimg/apache2 && cd ~/dockerimg/apache2
 vi Dockerfile
 ```
@@ -193,3 +197,47 @@ docker build -t hth/apache-test:1.2 .
 docker run -it -d -p 8080:80 hth/apache-test:1.2
 ```
 
+### delete docker image/container/system
+
+```shell
+## delete docker image
+##
+docker images
+docker image remove httpd:2.4
+docker rmi ubuntu
+docker rmi d65c4d6a3580
+docker rmi 612866ff4869 e19e33310e49 abe0cd4b2ebc
+
+docker images -f dangling=true ## remove all dangling images
+docker image prune ## remove all dangling images
+docker image prune -a ## remove all not associated with any container
+docker rmi $(docker images -q -f dangling=true) ## remove all dangling images
+
+## delete docker container
+##
+docker ps -a
+docker rm 0fd99ee0cb61 ## remove a single container
+docker rm 0fd99ee0cb61 0fd99ee0cb61 ## remove multiple containers
+docker stop 0fd99ee0cb61
+docker rm -f 0fd99ee0cb61
+docker rm $(docker ps -qa --filter "status=exited")
+
+docker stop $(docker ps -a -q) ## stop all containers
+docker container prune ## interactively remove all stopped containers
+docker rm $(docker ps -qa)
+
+## remove docker volumes
+##
+docker volume ls 
+docker volume rm volume_ID ## remove a single volume 
+docker volume rm volume_ID1 volume_ID2 ## remove multiple volumes
+
+docker volume rm -f volume_ID ## force remove
+docker volume rm $(docker volume ls  -q --filter dangling=true)
+docker volume prune
+
+## Remove Unused or Dangling Images, Containers, Volumes, and Networks
+##
+docker system prune
+docker system prune --volumes
+```
