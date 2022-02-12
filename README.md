@@ -8,4 +8,4 @@ At the moment I am learning docker, Dockerfile and docker-compose and this repos
 
 ### Table of content
 
-* [Gitea Git Server](gitea/README.md)
+* [Gitea Git Server](gitea/)
