@@ -77,7 +77,7 @@ sudo apt install -y apt-transport-https ca-certificates curl gnupg-agent \
 software-properties-common 
 curl -fsSL https://get.docker.com | sh
 
-sudo usermod -aG docker hth
+sudo usermod -aG docker $USER
 
 sudo systectl start docker
 sudo systectl enable docker
