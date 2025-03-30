@@ -21,8 +21,8 @@ services:
     depends_on:
       - db
     environment:
-      PASSBOLT_META_DESCRIPTION: "Open source password manager for LBS2C"
-      PASSBOLT_META_TITLE: "LBS2C Passwort Manager"
+      PASSBOLT_META_DESCRIPTION: "Open source password manager"
+      PASSBOLT_META_TITLE: "Passwort Manager"
       APP_FULL_BASE_URL: https://passbolt.domain.local
       APP_ENCODING: "UTF-8"
       DATASOURCES_DEFAULT_HOST: "db"
