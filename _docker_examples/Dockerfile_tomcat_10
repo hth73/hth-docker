@@ -1,0 +1,31 @@
+FROM tomcat:10.1.31-jre17-temurin
+  
+ARG VERSION
+
+## Base Environment variables
+ENV CATALINA_HOME=/usr/local/tomcat \
+    CLASSPATH=/usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar \
+    JAVA_HOME=/opt/java/openjdk \
+    JAVA_TOOL_OPTIONS="-Djava.awt.headless=true"
+
+## Install Packages
+RUN set -eux && \
+    apt clean && \
+    apt update && \
+    apt-get install unzip java-common default-jre-headless -y && \
+    curl -o "/tmp/awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" && \
+    unzip /tmp/awscliv2.zip -d /tmp && \
+    /tmp/aws/install && \
+    aws --version && \
+    rm -rf /tmp/aws && \
+    rm -rf /usr/local/tomcat/webapps && \
+    mv /usr/local/tomcat/webapps.dist /usr/local/tomcat/webapps
+
+# ## SAMPLE WebApp
+# ## http://localhost:8080/sample
+WORKDIR /usr/local/tomcat/webapps
+RUN curl -O -L https://tomcat.apache.org/tomcat-10.0-doc/appdev/sample/sample.war
+
+EXPOSE 8080
+
+CMD ["catalina.sh", "run"]

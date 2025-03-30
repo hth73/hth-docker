@@ -1,0 +1,32 @@
+FROM docker.io/alpine:3.18.5
+
+ARG TERRAFORM_VERSION="1.6.5" \
+    TERRAGRUNT_VERSION="0.53.8"
+
+RUN apk --no-cache update && \
+    apk --no-cache add bash \
+    ca-certificates \
+    curl \
+    jq \
+    python3 \
+    python3-dev \
+    py-pip \
+    py-setuptools \
+    wget \
+    && \
+    ln -sf python3 /usr/bin/python && \
+    # Install hasicorp/terraform
+    wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/"${TERRAFORM_VERSION}"/terraform_"${TERRAFORM_VERSION}"_linux_amd64.zip && \
+    unzip /tmp/terraform.zip -d /tmp/terraform && \
+    mv /tmp/terraform/terraform /usr/bin/terraform && \
+    rm -r /tmp/terraform /tmp/terraform.zip && \
+    # Install gruntwork/terragrunt
+    wget -O /tmp/terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v"${TERRAGRUNT_VERSION}"/terragrunt_linux_amd64 && \
+    chmod +x /tmp/terragrunt && \
+    mv /tmp/terragrunt /usr/bin/terragrunt && \
+    # Install amazon/awscli
+    python -m pip install awscli && \
+    rm -rf /var/cache/apk/* && \
+    rm -rf /root/.cache
+
+CMD ["/bin/bash"]

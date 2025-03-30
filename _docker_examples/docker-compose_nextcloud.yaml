@@ -1,0 +1,69 @@
+---
+
+networks:
+  homenet:
+    name: homenet
+    driver: bridge
+
+services:
+  nextcloud:
+    image: ${NEXTCLOUD_DOCKER_IMAGE}
+    container_name: nextcloud
+    hostname: nextcloud.${FQDN}
+    restart: always
+    ports:
+      - 8080:80
+    volumes:
+      - "./nextcloud/data:/var/www/html"
+    networks:
+      - homenet
+    environment:
+      - REDIS_HOST=redis
+      - MYSQL_HOST=db
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=nextcloud
+
+  redis:
+    image: ${REDIS_DOCKER_IMAGE}
+    container_name: redis
+    hostname: redis.${FQDN}
+    restart: always
+    networks:
+      - homenet
+    expose:
+      - 6379
+
+  db:
+    image: ${MARIADB_DOCKER_IMAGE}
+    container_name: db
+    hostname: db.${FQDN}
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: always
+    volumes:
+      - "./mariadb/data:/var/lib/mysql"
+    networks:
+      - homenet
+    environment:
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_ROOT_PASSWORD=nextcloud
+      - MYSQL_PASSWORD=nextcloud
+    expose:
+      - 3306
+
+  caddy:
+    image: ${CADDY_DOCKER_IMAGE}
+    container_name: caddy
+    hostname: caddy.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./caddy/config/Caddyfile:/etc/caddy/Caddyfile:ro"
+      - "./caddy/data:/data"
+      - "./caddy/config:/config"
+    networks:
+      - homenet
+    ports:
+      - 80:80
+      - 443:443

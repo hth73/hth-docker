@@ -1,0 +1,91 @@
+---
+
+networks:
+  monitoring:
+    name: monitoring
+    driver: bridge
+
+services:
+  prometheus:
+    image: ${PROMETHEUS_DOCKER_CONTAINER}
+    container_name: prometheus
+    hostname: prometheus.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./prometheus/config:/etc/prometheus"
+      - "./prometheus/data:/prometheus"
+    command:
+      - '--web.page-title=Prometheus Monitoring'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=90d'
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--web.config.file=/etc/prometheus/web_config.yaml'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.external-url=http://prometheus.htdom.local:9090'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - monitoring
+    ports:
+      - 9090:9090
+    labels:
+      org.opencontainers.image.title: "prometheus"
+      org.opencontainers.image.group: "monitoring"
+
+  grafana:
+    image: ${GRAFANA_DOCKER_CONTAINER}
+    container_name: grafana
+    hostname: grafana.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./grafana/config:/etc/grafana"
+      - "./grafana/data:/var/lib/grafana"
+    networks:
+      - monitoring
+    ports:
+      - 3000:3000
+    labels:
+      org.opencontainers.image.title: "grafana"
+      org.opencontainers.image.group: "monitoring"
+
+  loki:
+    image: ${LOKI_DOCKER_CONTAINER}
+    container_name: loki
+    hostname: loki.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./loki/config/loki-config.yaml:/etc/loki/loki-config.yaml:ro"
+      - "./loki/data:/loki"
+    command: 
+      -config.file=/etc/loki/loki-config.yaml
+      -config.expand-env=true
+    networks:
+      - monitoring
+    ports:
+      - "3100:3100"
+    labels:
+      org.opencontainers.image.title: "loki"
+      org.opencontainers.image.group: "monitoring"
+
+  caddy:
+    image: ${CADDY_DOCKER_CONTAINER}
+    container_name: caddy
+    hostname: caddy.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./caddy/config/Caddyfile:/etc/caddy/Caddyfile:ro"
+      - "./caddy/data:/data"
+      - "./caddy/config:/config"
+    networks:
+      - monitoring
+    ports:
+      - 80:80
+      - 443:443
+    labels:
+      org.opencontainers.image.title: "caddy"
+      org.opencontainers.image.group: "monitoring"

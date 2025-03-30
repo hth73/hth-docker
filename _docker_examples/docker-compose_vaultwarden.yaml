@@ -1,0 +1,105 @@
+---
+
+networks:
+  homenet:
+    name: homenet
+    driver: bridge
+
+services:
+  vaultwarden:
+    image: ${VAULTWARDEN_DOCKER_CONTAINER}
+    container_name: vaultwarden
+    hostname: vaultwarden.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./vaultwarden/data:/data"
+    environment:
+      - SMTP_HOST=smtp.domain.local
+      - SMTP_FROM=vaultadmin@domain.local
+      - SMTP_FROM_NAME=vaultadmin
+      - SMTP_PORT=25
+      - SMTP_USERNAME=vaultadmin
+      - SMTP_PASSWORD=vaultadmin
+      - SMTP_TIMEOUT=30
+      - SMTP_AUTH_MECHANISM="Plain"
+      - LOGIN_RATELIMIT_MAX_BURST=10
+      - LOGIN_RATELIMIT_SECONDS=60
+      - DOMAIN=https://vaultwarden.domain.local
+      - INVITATION_ORG_NAME=DOMAIN
+      - INVITATION_ALLOWED=true
+        # sudo apt install argon2 -y; 
+        # echo -n "AE%Zi7didkT#DINepWDoQ?wWRPAG$LWd" | argon2 "$(openssl rand -base64 32)" -e -id -k 65540 -t 3 -p 4
+      - ADMIN_TOKEN=VaultAdminToken2024!
+      - SIGNUPS_ALLOWED=false
+      - SIGNUPS_DOMAINS_WHITELIST=domain.local,domain.de,domain.com
+      - SIGNUPS_VERIFY=false
+      - SIGNUPS_VERIFY_RESEND_TIME=3600
+      - SIGNUPS_VERIFY_RESEND_LIMIT=5
+      - EMERGENCY_ACCESS_ALLOWED=true
+      - SENDS_ALLOWED=true
+      - WEB_VAULT_ENABLED=true
+    networks:
+      - homenet
+    ports:
+      - 8080:80
+    labels:
+      org.opencontainers.image.title: "vaultwarden"
+      org.opencontainers.image.group: "homenet"
+
+  smtp4dev:
+    image: docker.io/rnwood/smtp4dev:latest
+    restart: always
+    container_name: smtp
+    hostname: smtp.${FQDN}
+    ports:
+      - 5000:80
+      - 25:25
+      - 143:143
+    volumes:
+        - "./smtp/data:/smtp4dev"
+    environment:
+      #Specifies the virtual path from web server root where SMTP4DEV web interface will be hosted. e.g. "/" or "/smtp4dev"
+      - ServerOptions__BasePath=/smtp4dev
+
+      #Specifies the URLs the web UI will use inside the container.
+      - ServerOptions__Urls=http://*:80
+
+      #Sets the name of the SMTP server that will be used to relay messages or "" if messages should not be relayed
+      - RelayOptions__SmtpServer=smtp.domain.local
+
+      #Sets the port number for the SMTP server used to relay messages.
+      - RelayOptions__SmtpPort=25
+
+      #Specifies the address used in MAIL FROM when relaying messages. (Sender address in message headers is left unmodified). The sender of each message is used if not specified.
+      - RelayOptions__SenderAddress=vaultadmin@domain.local
+
+      #The username for the SMTP server used to relay messages. If "" no authentication is attempted.
+      - RelayOptions__Login=vaultadmin
+
+      #The password for the SMTP server used to relay messages
+      - RelayOptions__Password=vaultadmin
+
+      #Specifies the port the IMAP server will listen on - allows standard email clients to view/retrieve messages
+      #- ServerOptions__ImapPort=143
+    labels:
+      org.opencontainers.image.title: "smtp"
+
+  caddy:
+    image: ${CADDY_DOCKER_CONTAINER}
+    container_name: caddy
+    hostname: caddy.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./caddy/config/Caddyfile:/etc/caddy/Caddyfile:ro"
+      - "./caddy/data:/data"
+      - "./caddy/config:/config"
+    networks:
+      - homenet
+    ports:
+      - 80:80
+      - 443:443
+    labels:
+      org.opencontainers.image.title: "caddy"
+      org.opencontainers.image.group: "homenet"

@@ -1,0 +1,154 @@
+---
+
+networks:
+  homenet:
+    name: homenet
+    driver: bridge
+
+services:
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:10.0.3
+    container_name: git
+    hostname: git.${FQDN}
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+    volumes:
+      - "/opt/forgejo/data:/data"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - homenet
+    ports:
+      - "3000:3000"
+      - "2222:22"
+
+  registry:
+    image: docker.io/registry:2
+    container_name: registry
+    hostname: registry.${FQDN}
+    network_mode: "host"
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
+    volumes:
+      - "/opt/registry/data:/var/lib/registry"
+
+  prometheus:
+    image: docker.io/prom/prometheus:v3.2.1
+    container_name: prometheus
+    hostname: prometheus.${FQDN}
+    network_mode: "host"
+    user: root
+    restart: always
+    volumes:
+      - "./prometheus/config:/etc/prometheus"
+      - "/opt/prometheus/data:/prometheus"
+    command:
+      - '--web.page-title=Prometheus Monitoring'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--web.config.file=/etc/prometheus/web_config.yaml'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.external-url=https://prometheus.htdom.local'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    ports:
+      - 9090:9090
+
+  grafana:
+    image: docker.io/grafana/grafana:11.6.0
+    container_name: grafana
+    hostname: grafana.${FQDN}
+    network_mode: "host"
+    user: root
+    restart: always
+    volumes:
+      - "./grafana/config:/etc/grafana"
+      - "/opt/grafana/data:/var/lib/grafana"
+    ports:
+      - 3001:3001
+
+  loki:
+    image: docker.io/grafana/loki:3.4.2
+    container_name: loki
+    hostname: loki.${FQDN}
+    network_mode: "host"
+    user: root
+    restart: always
+    volumes:
+      - "./loki/config/loki-config.yaml:/etc/loki/loki-config.yaml:ro"
+      - "/opt/loki/data:/loki"
+    command: 
+      -config.file=/etc/loki/loki-config.yaml
+      -config.expand-env=true
+    ports:
+      - "3100:3100"
+
+  blackbox:
+    image: docker.io/prom/blackbox-exporter:v0.26.0
+    container_name: blackbox
+    hostname: blackbox.${FQDN}
+    network_mode: "host"
+    restart: always
+    volumes:
+      - "./blackbox/config/blackbox.yml:/etc/blackbox/blackbox.yml:ro"
+    command:
+      - '--config.file=/etc/blackbox/blackbox.yml'
+    ports:
+      - "9115:9115"
+
+  mariadb:
+    image: docker.io/mariadb:11.7.2
+    container_name: mariadb
+    hostname: mariadb.${FQDN}
+    network_mode: "host"
+    user: root
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - "./opt/mariadb/data:/var/lib/mysql"
+      - "./mariadb/config/init.sql:/docker-entrypoint-initdb.d/init.sql"
+    ports:
+      - "3306:3306"
+
+  oidc:
+    image: ghcr.io/pocket-id/pocket-id:v0.45
+    container_name: oidc
+    hostname: oidc.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "/opt/pocketid/data:/app/backend/data"
+    environment:
+      PUBLIC_APP_URL: "https://oidc.htdom.local"
+      ALLOWED_ORIGINS: "https://oidc.htdom.local"
+      TRUST_PROXY: "true"
+      PORT: "3002"
+      APP_NAME: "HTH OIDC - Pocket ID"
+    ports:
+      - 3002:80
+
+  caddy:
+    image: docker.io/caddy:2.9.1
+    container_name: caddy
+    hostname: caddy.${FQDN}
+    network_mode: "host"
+    restart: always
+    volumes:
+      - "./caddy/config/Caddyfile:/etc/caddy/Caddyfile:ro"
+      - "/opt/caddy/data:/data"
+      - "/opt/caddy/config:/config"
+    ports:
+      - "80:80"
+      - "443:443"

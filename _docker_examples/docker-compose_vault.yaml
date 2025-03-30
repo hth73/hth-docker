@@ -1,0 +1,34 @@
+---
+## https://ambar-thecloudgarage.medium.com/hashicorp-vault-with-docker-compose-0ea2ce1ca5ab
+
+networks:
+  homenet:
+    name: homenet
+    driver: bridge
+
+services:
+  vault:
+    image: ${VAULT_DOCKER_IMAGE}
+    container_name: vault
+    hostname: vault.${FQDN}
+    restart: always
+    environment:
+      VAULT_ADDR: "https://vault.${FQDN}:8200"
+      VAULT_API_ADDR: "https://vault.${FQDN}:8200"
+      VAULT_ADDRESS: "https://vault.${FQDN}:8200"
+      # VAULT_UI: true
+      # VAULT_TOKEN:
+    networks:
+      - homenet
+    ports:
+      - "8200:8200"
+      - "8201:8201"
+    volumes:
+      - "./vault/logs:/vault/logs/:rw"
+      - "./vault/data:/vault/data/:rw"
+      - "./vault/config:/vault/config/:rw"
+      - "./vault/file:/vault/file/:rw"
+      - "./vault/certs:/certs/:rw"
+    cap_add:
+      - IPC_LOCK
+    entrypoint: vault server -config /vault/config/config.hcl

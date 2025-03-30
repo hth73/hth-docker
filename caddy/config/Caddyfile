@@ -1,0 +1,39 @@
+git.htdom.local {
+  reverse_proxy http://git.htdom.local:3000
+  tls internal
+}
+
+grafana.htdom.local {
+  reverse_proxy http://grafana.htdom.local:3001
+  tls internal
+}
+
+oidc.htdom.local {
+  tls internal
+  reverse_proxy http://oidc.htdom.local:3002 {
+    header_up Host {host}
+    header_up X-Forwarded-Proto {scheme}
+    header_up X-Forwarded-For {remote}
+  }
+}
+
+loki.htdom.local {
+  reverse_proxy http://loki.htdom.local:3100
+  tls internal
+}
+
+registry.htdom.local {
+  reverse_proxy http://registry.htdom.local:5000
+  tls internal
+}
+
+prometheus.htdom.local {
+  reverse_proxy http://prometheus.htdom.local:9090
+  tls internal
+}
+
+blackbox.htdom.local {
+  reverse_proxy http://blackbox.htdom.local:9115
+  tls internal
+}
+

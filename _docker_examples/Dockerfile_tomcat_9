@@ -1,0 +1,30 @@
+FROM tomcat:9.0.65-jre11-openjdk
+  
+ARG VERSION
+
+## Base Environment variables
+ENV CATALINA_BASE=/usr/local/tomcat \
+    CATALINA_HOME=/usr/local/tomcat \
+    CATALINA_TMPDIR=/usr/local/tomcat/temp \
+    PATH=/usr/local/tomcat/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    CLASSPATH=/usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar \
+    JAVA_HOME=/usr/local/openjdk-11 \
+    JRE_HOME=/usr/local/openjdk-11
+
+## Install Packages
+RUN set -eux && \
+    apt-get clean && \
+    apt-get update && \
+    apt-get install curl wget awscli java-common default-jre-headless -y && \
+    mv /usr/local/tomcat/webapps /usr/local/tomcat/webapps2 && \
+    mv /usr/local/tomcat/webapps.dist /usr/local/tomcat/webapps && \
+    rm -rf /usr/local/tomcat/webapps2
+
+## SAMPLE WebApp
+## http://localhost:8080/SampleWebApp/welcome.jsp
+WORKDIR /usr/local/tomcat/webapps
+RUN curl -O -L https://github.com/AKSarav/SampleWebApp/raw/master/dist/SampleWebApp.war
+
+EXPOSE 8080
+
+CMD ["catalina.sh", "run"]

@@ -1,0 +1,30 @@
+FROM docker.io/alpine:3.18.5
+
+ARG ANSIBLE_VERSION="8.6.1" \
+    PACKER_VERSION="1.9.4"
+
+RUN apk --no-cache update && \
+    apk --no-cache add bash \
+    ca-certificates \
+    curl \
+    python3 \
+    python3-dev \
+    py-pip \
+    wget \
+    unzip \
+    && \
+    ln -sf python3 /usr/bin/python && \
+    pip install --root-user-action=ignore --upgrade pip && \
+    pip install --root-user-action=ignore ansible=="${ANSIBLE_VERSION}" && \
+    addgroup -S ansible && \
+    adduser -S ansible -G ansible && \
+    wget -O /tmp/packer.zip https://releases.hashicorp.com/packer/"${PACKER_VERSION}"/packer_"${PACKER_VERSION}"_linux_amd64.zip && \
+    unzip /tmp/packer.zip -d /usr/bin/ && \
+    chmod +x /usr/bin/packer && \
+    rm /tmp/packer.zip && \
+    rm -rf /var/cache/apk/* && \
+    rm -rf /root/.cache
+
+USER ansible
+
+CMD ["/bin/bash"]

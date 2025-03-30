@@ -1,0 +1,54 @@
+---
+
+services:
+  db:
+    image: docker.io/mariadb:10.11.9
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+      MYSQL_DATABASE: "passbolt"
+      MYSQL_USER: "passbolt"
+      MYSQL_PASSWORD: "P4ssb0lt"
+    volumes:
+      - ./mariadb/data:/var/lib/mysql
+
+  passbolt:
+    image: docker.io/passbolt/passbolt:4.9.1-1-ce
+    container_name: passbolt
+    hostname: passbolt.domain.local
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PASSBOLT_META_DESCRIPTION: "Open source password manager for LBS2C"
+      PASSBOLT_META_TITLE: "LBS2C Passwort Manager"
+      APP_FULL_BASE_URL: https://passbolt.domain.local
+      APP_ENCODING: "UTF-8"
+      DATASOURCES_DEFAULT_HOST: "db"
+      DATASOURCES_DEFAULT_USERNAME: "passbolt"
+      DATASOURCES_DEFAULT_PASSWORD: "P4ssb0lt"
+      DATASOURCES_DEFAULT_DATABASE: "passbolt"
+      DEBUG: "true"
+      PASSBOLT_PLUGINS_JWT_AUTHENTICATION_ENABLED: "true"
+      PASSBOLT_AUTH_JWT_ACCESS_TOKEN: "120 minutes"
+      PASSBOLT_PLUGINS_SSO_PROVIDER_OAUHT2_ENABLED: "true"
+    volumes:
+      - gpg_volume:/etc/passbolt/gpg
+      - jwt_volume:/etc/passbolt/jwt
+    command:
+      [
+        "/usr/bin/wait-for.sh",
+        "-t",
+        "0",
+        "db:3306",
+        "--",
+        "/docker-entrypoint.sh",
+      ]
+    ports:
+      - 80:80
+      - 443:443
+
+volumes:
+  gpg_volume:
+  jwt_volume:

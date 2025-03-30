@@ -1,0 +1,27 @@
+---
+
+# mysql -h mysql.domain.local -P 3306 -u root -p
+
+networks:
+  homenet:
+    name: homenet
+    driver: bridge
+
+services:
+  mysql:
+    image: docker.io/mysql:8.0.39
+    container_name: mysql
+    hostname: mysql.domain.local
+    user: root
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'demodb'
+      MYSQL_USER: 'myuser'
+      MYSQL_PASSWORD: 'hzfoWcN40fLy42nl0M8hQcy7'
+      MYSQL_ROOT_PASSWORD: 'hzfoWcN40fLy42nl0M8hQcy7'
+    networks:
+      - homenet
+    ports:
+      - '3306:3306'
+    volumes:
+      - "./mysql/data/:/var/lib/mysql"

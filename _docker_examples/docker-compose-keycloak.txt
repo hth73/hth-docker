@@ -1,0 +1,183 @@
+---
+
+networks:
+  monitoring:
+    name: monitoring
+    driver: bridge
+
+# networks:
+#  monitoring:
+#    name: monitoring
+#    driver: bridge
+#    ipam:
+#      driver: default
+#      config:
+#        - subnet: "192.168.178.0/24"
+#          gateway: "192.168.178.1"
+
+services:
+  prometheus:
+    image: ${PROMETHEUS_DOCKER_CONTAINER}
+    container_name: prometheus
+    hostname: prometheus.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "prometheus-conf:/etc/prometheus"
+      - "prometheus-data:/prometheus"
+    command:
+      - '--web.page-title=Prometheus Monitoring'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=90d'
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--web.config.file=/etc/prometheus/web_config.yaml'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.external-url=http://prometheus.htdom.local:9090'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - monitoring
+    ports:
+      - 9090:9090
+    labels:
+      org.opencontainers.image.title: "prometheus"
+      org.opencontainers.image.group: "monitoring"
+
+  grafana:
+    image: ${GRAFANA_DOCKER_CONTAINER}
+    container_name: grafana
+    hostname: grafana.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "grafana-conf:/etc/grafana"
+      - "grafana-data:/var/lib/grafana"
+    networks:
+      - monitoring
+    ports:
+      - 3000:3000
+    labels:
+      org.opencontainers.image.title: "grafana"
+      org.opencontainers.image.group: "monitoring"
+
+  postgres:
+    image: ${POSTGRES_DOCKER_CONTAINER}
+    container_name: postgres
+    hostname: postgres.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    networks:
+      - monitoring
+    ports:
+      - "5432:5432"
+    labels:
+      org.opencontainers.image.title: "postgres"
+      org.opencontainers.image.group: "monitoring"
+
+  keycloak:
+    image: ${KEYCLOAK_QUAY_CONTAINER}
+    container_name: keycloak
+    hostname: keycloak.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./keycloak/import:/opt/keycloak/data/import"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_SCHEMA: public
+      KC_HOSTNAME:
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_PROXY: edge
+      KC_PROXY_ADDRESS_FORWARDING: true
+      KEYCLOAK_ENABLE_HEALTH_ENDPOINTS: true
+      KEYCLOAK_ENABLE_STATISTICS: true
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    depends_on:
+      - postgres
+    networks:
+      - monitoring
+    command:
+      - "start-dev"
+    ports:
+      - "8080:8080"
+    labels:
+      org.opencontainers.image.title: "keycloak"
+      org.opencontainers.image.group: "monitoring"
+
+  caddy:
+    image: ${CADDY_DOCKER_CONTAINER}
+    container_name: caddy
+    hostname: caddy.${FQDN}
+    user: root
+    restart: always
+    volumes:
+      - "./caddy/config/Caddyfile:/etc/caddy/Caddyfile:ro"
+      - "caddy-data:/data"
+      - "caddy-conf:/config"
+    networks:
+      - monitoring
+    ports:
+      - 80:80
+      - 443:443
+    labels:
+      org.opencontainers.image.title: "caddy"
+      org.opencontainers.image.group: "monitoring"
+
+volumes:
+  prometheus-conf:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./prometheus/config
+      o: bind
+  prometheus-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./prometheus/data
+      o: bind
+  grafana-conf:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./grafana/config
+      o: bind
+  grafana-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./grafana/data
+      o: bind
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./postgres/data
+      o: bind
+  caddy-conf:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./caddy/config
+      o: bind
+  caddy-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./caddy/data
+      o: bind

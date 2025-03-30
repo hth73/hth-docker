@@ -1,0 +1,65 @@
+logging {
+  level  = "debug"
+  format = "logfmt"
+}
+
+local.file_match "var_log_logs" {
+  path_targets = [{ "__path__" = "/var/log/*.log" }]
+  sync_period  = "5s"
+}
+
+local.file_match "var_log_apt_history" {
+  path_targets = [{ "__path__" = "/var/log/apt/history.log" }]
+  sync_period  = "5s"
+}
+
+local.file_match "var_log_syslog" {
+    path_targets = [{ "__path__" = "/var/log/syslog" }]
+    sync_period = "5s"
+}
+
+local.file_match "var_log_dmesg" {
+    path_targets = [{ "__path__" = "/var/log/dmesg" }]
+    sync_period = "5s"
+}
+
+loki.source.file "log_scrape" {
+  targets = concat(
+    local.file_match.var_log_logs.targets,
+    local.file_match.var_log_apt_history.targets,
+    local.file_match.var_log_syslog.targets,
+    local.file_match.var_log_dmesg.targets,
+  )
+  forward_to = [loki.process.filter_logs.receiver]
+  tail_from_end = true
+}
+
+loki.process "filter_logs" {
+  stage.drop {
+    source = ""
+    expression = ".*Connection closed by authenticating user root"
+    drop_counter_reason = "noisy"
+  }
+  stage.drop {
+    source = ""
+    expression = ".*session (opened|closed) for user root.*"
+    drop_counter_reason = "sudo_session_activity"
+  }
+  forward_to = [loki.write.grafana_loki.receiver]
+}
+
+loki.write "grafana_loki" {
+  endpoint {
+    url = "https://loki.htdom.local/loki/api/v1/push"
+
+    tls_config {
+      insecure_skip_verify = true
+    }
+  }
+
+  external_labels = {
+    job = "alloy-agent",
+    host = "...",
+  }
+}
+
