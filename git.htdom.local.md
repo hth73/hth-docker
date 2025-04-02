@@ -17,22 +17,22 @@ Um im Web Browser keinen Zertifikats Warnmeldungen zu bekomme, wurde das Caddy R
 <a href="images/forgejo.jpg" target="_blank"><img src="images/forgejo.jpg" alt="Forgejo Git Server" title="Forgejo Git Server" width="460" height="230" /></a>
 
 ---
-* [Ordner-Struktur](#ordner-struktur)
-	* [~/docker/forgejo/config/app.ini](#dockerforgejoconfigappini)
-	* [~/docker/caddy/config/Caddyfile](#dockercaddyconfigcaddyfile)
-	* [~/docker/.env](#dockerenv)
-	* [~/docker/docker-compose.yaml](#dockerdocker-composeyaml)
-* [Forgejo-Runner installieren und registrieren](#forgejo-runner-installieren-und-registrieren)
-* [Renovate-Bot integrieren](#renovate-bot-integrieren)
-	* [config.js](#configjs)
-	* [renovate.json](#renovatejson)
-* [GitHub Actions integrieren für renovate-Bot](#github-actions-integrieren-für-renovate-bot)
-	* [.forgejo/workflows/renovate.yaml](#forgejoworkflowsrenovateyaml)
-	* [.forgejo/workflows/show_variables.yaml](#forgejoworkflowsshow_variablesyaml)
+* [Ordner-Struktur](#ordner-struktur---top-of-page)
+	* [~/docker/forgejo/config/app.ini](#dockerforgejoconfigappini---top-of-page)
+	* [~/docker/caddy/config/Caddyfile](#dockercaddyconfigcaddyfile---top-of-page)
+	* [~/docker/.env](#dockerenv---top-of-page)
+	* [~/docker/docker-compose.yaml](#dockerdocker-composeyaml---top-of-page)
+* [Forgejo-Runner installieren und registrieren](#forgejo-runner-installieren-und-registrieren---top-of-page)
+* [Renovate-Bot integrieren](#renovate-bot-integrieren---top-of-page)
+	* [config.js](#configjs---top-of-page)
+	* [renovate.json](#renovatejson---top-of-page)
+* [GitHub Actions integrieren für renovate-Bot](#github-actions-integrieren-für-renovate-bot---top-of-page)
+	* [.forgejo/workflows/renovate.yaml](#forgejoworkflowsrenovateyaml---top-of-page)
+	* [.forgejo/workflows/show_variables.yaml](#forgejoworkflowsshow_variablesyaml---top-of-page)
 
 ---
 
-#### Ordner-Struktur 
+#### Ordner-Struktur - [Top of Page](#githtdomlocal)
 ```bash
 sudo vi /etc/hosts
 # <Docker-Host IP-Adresse> git.htdom.local
@@ -44,7 +44,7 @@ mkdir -p ~/docker/caddy/config
 mkdir -p /opt/caddy/data
 ```
 
-#### ~/docker/forgejo/config/app.ini
+#### ~/docker/forgejo/config/app.ini - [Top of Page](#githtdomlocal)
 ```html
 APP_NAME = HTH
 RUN_MODE = prod
@@ -148,7 +148,7 @@ DEFAULT_TRUST_MODEL = committer
 JWT_SECRET = WCtbssptNQWh_seknFnim4r-Ge2XDdMltCbhMKH-RXw
 ```
 
-#### ~/docker/caddy/config/Caddyfile
+#### ~/docker/caddy/config/Caddyfile - [Top of Page](#githtdomlocal)
 ```html
 git.htdom.local {
   reverse_proxy http://git.htdom.local:3000
@@ -156,12 +156,12 @@ git.htdom.local {
 }
 ```
 
-####  ~/docker/.env
+####  ~/docker/.env - [Top of Page](#githtdomlocal)
 ```bash
 FQDN=htdom.local
 ```
 
-#### ~/docker/docker-compose.yaml
+#### ~/docker/docker-compose.yaml - [Top of Page](#githtdomlocal)
 ```yaml
 ---
 networks:
@@ -205,7 +205,7 @@ services:
 
 > Caddy Root CA Zertifikat in dem Browser seinen Zertifikats Store importieren - /opt/caddy/data/caddy/pki/authorities/local/root.crt
 
-#### Forgejo-Runner installieren und registrieren
+#### Forgejo-Runner installieren und registrieren - [Top of Page](#githtdomlocal)
 ```bash
 # --------------------------------------------------
 # Install forgejo-runner
@@ -263,7 +263,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now forgejo-runner.service
 sudo systemctl status forgejo-runner.service
 ```
-#### Renovate-Bot integrieren
+#### Renovate-Bot integrieren - [Top of Page](#githtdomlocal)
 Um den Renovate Bot in Git zu integrieren, wurde ein neues Repository mit dem Namen "**hth/renovate-config**" angelegt mit folgender globalen Konfigurationsdatei "**config.js**".
 Zusätzlich waren noch ein paar Vorbereitungen am Git Server selbst zu tätigen.
 
@@ -297,7 +297,7 @@ curl -sk -H "Authorization: token ${PAT}" "https://git.htdom.local/api/v1/user" 
 curl -sk -H "Authorization: token ${PAT}" "https://git.htdom.local/api/v1/repos/hth/docker" | jq -r '.'
 curl -sk -X GET -H "Authorization: token ${PAT}" "https://git.htdom.local/api/v1/repos/hth/docker/actions/runs" | jq -r '.'
 ```
-##### config.js
+##### config.js - [Top of Page](#githtdomlocal)
 ```js
 module.exports = {
   "endpoint": "https://git.htdom.local/api/v1",
@@ -310,7 +310,8 @@ module.exports = {
 ```
 
 Im Haupt Repository (hth/docker) das später überwacht werden soll, wurde eine "**renovate.json**" Datei mit folgenden Inhalt angelegt.
-##### renovate.json
+
+##### renovate.json - [Top of Page](#githtdomlocal)
 ```json
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
@@ -343,7 +344,7 @@ Im Haupt Repository (hth/docker) das später überwacht werden soll, wurde eine 
 }
 ```
 
-#### GitHub Actions integrieren für renovate-Bot
+#### GitHub Actions integrieren für renovate-Bot - [Top of Page](#githtdomlocal)
 ```bash
 mkdir -p ~/docker/.forgejo/workflows
 
@@ -358,7 +359,7 @@ Hier in den Actions kommt das selbstgebaute Renovate Docker Image zu Einsatz, da
 Ich habe das Renovate Docker Image nur auf die Major Version (39) beschränkt, da hier fast alle zwei/drei Tage im Patch Level ein Update erfolgte. 
 Und ich nicht jeden Tag 1,2 GB runterladen wollte. Im Live Betrieb würde ich aber immer, ein Major.Minor.Patch in der Version angeben.
 
-##### .forgejo/workflows/renovate.yaml
+##### .forgejo/workflows/renovate.yaml - [Top of Page](#githtdomlocal)
 ```yaml
 name: renovate-bot
 
@@ -392,7 +393,7 @@ jobs:
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
 ```
 
-##### .forgejo/workflows/show_variables.yaml
+##### .forgejo/workflows/show_variables.yaml - [Top of Page](#githtdomlocal)
 ```yaml
 name: Show Environment Variables
 
