@@ -1,32 +1,37 @@
-#git #forgejo #forgejo-runner #githubactions #mend-renovate
+# git.htdom.local
 
 Um den ganzen Code lokal hosten zu können, wurde auf einem Raspberry Pi der als Docker-Host dient, ein Forgejo Git Server + Forgejo-Runner mit Caddy als Reverse Proxy installiert.
-Damit alle betriebenen Docker Container auch immer schön "Up to date" bleiben, wurde der Mend Renovate Bot für das "hth/docker" Repository hinzugefügt. 
+
+Damit alle betriebenen Docker Container auch immer schön "Up to date" bleiben, wurde der Mend Renovate Bot für das "hth/docker" Repository hinzugefügt.
+
 Um den Renovate Bot täglich laufen zu lassen, benötigte es noch eine Pipeline die als GitHub Actions in Forgejo Git Server ausgeführt wird. 
 Hier wird im Hintergrund ein Renovate Docker Image gebaut und in eine lokale Docker Registry abgelegt, der Renovate Bot bedient sich dem lokalen Renovate Docker Image und erstellt bei Bedarf einen Merge Request mit allen Änderungen.
 
-Meine lokale Spieldomäne heißt **"htdom.local"**. Alle Services sind mit einem Zertifikat abgesichert. In dieser Umgebung kommt das Root-CA und Server Zertifikat(e) von Caddy Service.
+Meine lokale Spieldomäne heißt **"htdom.local"**. 
+
+Alle Services sind mit einem Zertifikat abgesichert. In dieser Umgebung kommt das Root-CA und Server Zertifikat(e) von Caddy Service.
 Um im Web Browser keinen Zertifikats Warnmeldungen zu bekomme, wurde das Caddy Root-CA Zertifikat in dem Browser seinen Zertifikats-Store importiert.
 
->[!note] https://git.htdom.local
+> https://git.htdom.local
 
-![[forgejo.jpg|460x230]]
-
----
-* [[#Ordner-Struktur]]
-	* [[#~/docker/forgejo/config/app.ini]]
-	* [[#~/docker/caddy/config/Caddyfile]]
-	* [[#~/docker/.env]]
-	* [[#~/docker/docker-compose.yaml]]
-* [[#Forgejo-Runner installieren und registrieren]]
-* [[#Renovate-Bot integrieren]]
-	* [[#config.js]]
-	* [[#renovate.json]]
-* [[#GitHub Actions integrieren für renovate-Bot]]
-	* [[#.forgejo/workflows/renovate.yaml]]
-	* [[#.forgejo/workflows/show_variables.yaml]]
+<a href="images/forgejo.jpg" target="_blank"><img src="images/forgejo.jpg" alt="Forgejo Git Server" title="Forgejo Git Server" width="460" height="230" /></a>
 
 ---
+* [Ordner-Struktur](#ordner-struktur)
+	* [~/docker/forgejo/config/app.ini](#dockerforgejoconfigappini)
+	* [~/docker/caddy/config/Caddyfile](#dockercaddyconfigcaddyfile)
+	* [~/docker/.env](#dockerenv)
+	* [~/docker/docker-compose.yaml](#dockerdocker-composeyaml)
+* [Forgejo-Runner installieren und registrieren](#forgejo-runner-installieren-und-registrieren)
+* [Renovate-Bot integrieren](#renovate-bot-integrieren)
+	* [config.js](#configjs)
+	* [renovate.json](#renovatejson)
+* [GitHub Actions integrieren für renovate-Bot](#github-actions-integrieren-für-renovate-bot)
+	* [.forgejo/workflows/renovate.yaml](#forgejoworkflowsrenovateyaml)
+	* [.forgejo/workflows/show_variables.yaml](#forgejoworkflowsshow_variablesyaml)
+
+---
+
 #### Ordner-Struktur 
 ```bash
 sudo vi /etc/hosts
@@ -38,6 +43,7 @@ mkdir -p /opt/forgejo/data
 mkdir -p ~/docker/caddy/config
 mkdir -p /opt/caddy/data
 ```
+
 #### ~/docker/forgejo/config/app.ini
 ```html
 APP_NAME = HTH
@@ -141,6 +147,7 @@ DEFAULT_TRUST_MODEL = committer
 [oauth2]
 JWT_SECRET = WCtbssptNQWh_seknFnim4r-Ge2XDdMltCbhMKH-RXw
 ```
+
 #### ~/docker/caddy/config/Caddyfile
 ```html
 git.htdom.local {
@@ -148,10 +155,12 @@ git.htdom.local {
   tls internal
 }
 ```
+
 ####  ~/docker/.env
 ```bash
 FQDN=htdom.local
 ```
+
 #### ~/docker/docker-compose.yaml
 ```yaml
 ---
@@ -194,7 +203,8 @@ services:
       - "443:443"
 ```
 
->[!note] Caddy Root CA Zertifikat in dem Browser seinen Zertifikats Store importieren - /opt/caddy/data/caddy/pki/authorities/local/root.crt
+> Caddy Root CA Zertifikat in dem Browser seinen Zertifikats Store importieren - /opt/caddy/data/caddy/pki/authorities/local/root.crt
+
 #### Forgejo-Runner installieren und registrieren
 ```bash
 # --------------------------------------------------
@@ -288,7 +298,7 @@ curl -sk -H "Authorization: token ${PAT}" "https://git.htdom.local/api/v1/repos/
 curl -sk -X GET -H "Authorization: token ${PAT}" "https://git.htdom.local/api/v1/repos/hth/docker/actions/runs" | jq -r '.'
 ```
 ##### config.js
-```json
+```js
 module.exports = {
   "endpoint": "https://git.htdom.local/api/v1",
   "gitAuthor": "Renovate Bot <hth@htdom.local>",
@@ -332,6 +342,7 @@ Im Haupt Repository (hth/docker) das später überwacht werden soll, wurde eine 
   ]
 }
 ```
+
 #### GitHub Actions integrieren für renovate-Bot
 ```bash
 mkdir -p ~/docker/.forgejo/workflows
@@ -346,6 +357,7 @@ Die Renovate Action wird täglich um 00:00 Uhr ausgeführt und eröffnet einen M
 Hier in den Actions kommt das selbstgebaute Renovate Docker Image zu Einsatz, das hier beschreiben ist. [[registry.htdom.local]]
 Ich habe das Renovate Docker Image nur auf die Major Version (39) beschränkt, da hier fast alle zwei/drei Tage im Patch Level ein Update erfolgte. 
 Und ich nicht jeden Tag 1,2 GB runterladen wollte. Im Live Betrieb würde ich aber immer, ein Major.Minor.Patch in der Version angeben.
+
 ##### .forgejo/workflows/renovate.yaml
 ```yaml
 name: renovate-bot
@@ -379,6 +391,7 @@ jobs:
           LOG_LEVEL: "debug"
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
 ```
+
 ##### .forgejo/workflows/show_variables.yaml
 ```yaml
 name: Show Environment Variables
@@ -399,4 +412,3 @@ jobs:
           echo "Displaying all environment variables:"
           printenv
 ```
-
