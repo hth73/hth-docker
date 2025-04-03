@@ -8,6 +8,8 @@
 * [blackbox.htdom.local](blackbox.htdom.local)
 * [grafana.htdom.local](grafana.htdom.local)
 * [oidc.htdom.local](oidc.htdom.local)
+* [loki.htdom.local](loki.htdom.local)
+* [caddy.htdom.local](caddy.htdom.local)
 
 ---
 
