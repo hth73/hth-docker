@@ -3,13 +3,13 @@
 ### Inhaltsverzeichnis
 
 * [git.htdom.local](git.htdom.local.md)
-* [registry.htdom.local](registry.htdom.local)
-* [prometheus.htdom.local](prometheus.htdom.local)
-* [blackbox.htdom.local](blackbox.htdom.local)
-* [grafana.htdom.local](grafana.htdom.local)
-* [oidc.htdom.local](oidc.htdom.local)
-* [loki.htdom.local](loki.htdom.local)
-* [caddy.htdom.local](caddy.htdom.local)
+* [registry.htdom.local](registry.htdom.local.md)
+* [prometheus.htdom.local](prometheus.htdom.local.md)
+* [blackbox.htdom.local](blackbox.htdom.local.md)
+* [grafana.htdom.local](grafana.htdom.local.md)
+* [oidc.htdom.local](oidc.htdom.local.md)
+* [loki.htdom.local](loki.htdom.local.md)
+* [caddy.htdom.local](caddy.htdom.local.md)
 
 ---
 
